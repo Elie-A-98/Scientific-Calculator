@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::after, *::before{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body{
+            position: relative;
+        }
+
+        .left-container{
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+        }
+        .left-container > h1{
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        .container{
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgb(222,8,8);
+            background: linear-gradient(90deg, rgba(222,8,8,1) 0%, rgba(121,9,117,1) 53%, rgba(0,212,255,1) 100%);
+        }
+        @media screen and (max-width: 650px) {
+            .container{
+                padding: 0 5px;
+            }
+        }
+
+        .calculator{
+            width: 600px;
+            height: 80%;
+            background: #ccc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px 10px;
+            background: rgba(0,0,0,.3);
+            border: 5px solid rgba(0,0,0,0.5);
+            box-shadow: 0 0 10px white;
+        }
+
+        .result{
+            flex: .5 0 0px;
+            width: 100%;
+            border-radius: 10px;
+            background: white;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 3px 15px;
+        }
+       
+        .keypad{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .secondary-keys{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            margin: 5px;
+        }
+
+        .main-keys{
+            display: grid;
+            width: 100%;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .keybutton{
+            height: 50px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: inset 0 0 3px .8px black;
+        }
+        .keybutton:hover{
+            box-shadow: inset 0 0 10px 1px black;
+        }
+        .keybutton:active{
+            box-shadow: inset 0 0 5px 5px black;
+        }
+        .keybutton:disabled{
+            cursor: not-allowed;
+        }
+        .keybutton:disabled:hover{
+            box-shadow: inset 0 0 3px .8px black;
+        }
+
+        .keybutton-multiply{
+            padding-top: 12px;
+        }
+
+        .keybutton-1,
+        .keybutton-2,
+        .keybutton-3,
+        .keybutton-4,
+        .keybutton-5,
+        .keybutton-6,
+        .keybutton-7,
+        .keybutton-8,
+        .keybutton-9{
+            font-weight: bold;
+        }
+
+        .dropdown{
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            background-color: white;
+            padding: 10px 8px;
+            border-radius: 5px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: inset 0 0 3px 2px black;
+        }
+        .dropdown input {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            border: 0;
+            opacity: 0;
+            outline: 0;
+            cursor: pointer;
+        }
+        .dropdown > .content{
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 0;
+            top: 100%;
+            overflow: hidden;
+        }
+        .dropdown > .content > input{
+            /* pointer-events: none; */
+            z-index: 1;
+        }
+        .dropdown > .content > div {
+            border: 1px solid grey;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            width: 69px;
+            height: 50px;
+            transition: all 100ms ease-in-out;
+        }
+        .dropdown > .content > div:hover{
+            transform: scale(1.1);
+            box-shadow: 0 0 3px black;
+        }
+        .dropdown[open] > .content{
+            height: unset;
+            width: 284px;
+            padding: .5px;
+            border: 1px solid grey;
+            background: rgba(255,255,255,.5);
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 1px;
+            box-shadow: 0 0 3px 1px grey;
+        }
+    </style>
+
+    <title>Calculator</title>
+
+</head>
+<body>
+    <div class="container">
+        <div class="left-container">
+            <h1 data-js="expression"></h1>
+        </div>
+        <div class="calculator">
+            <div class="result"><h1 data-js="result"></h1></div>
+            <div class="keypad">
+                <div class="secondary-keys">
+                    <div data-js="dropdown" class="dropdown">
+                        Trigonometry
+                        <div class="content">
+                            <div data-js="keybutton" data-value="sin(" class="keybutton-sin">sin</div>
+                            <div data-js="keybutton" data-value="cos(" class="keybutton-cos">cos</div>
+                            <div data-js="keybutton" data-value="tan(" class="keybutton-tan">tan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-keys">
+                    <button data-js="keybutton" disabled data-value="" class="keybutton keybutton-">-</button>
+                    <button data-js="keybutton" data-constant="pi" data-value="&pi;" class="keybutton keybutton-pi">&pi;</button>
+                    <button data-js="keybutton" data-value="e(" class="keybutton keybutton-e">e</button>
+                    <button data-js="keybutton" data-value="c" class="keybutton keybutton-c">C</button>
+                    <button data-js="keybutton" data-value="delete" class="keybutton keybutton-delete"><-</button>
+                    <button data-js="keybutton" data-value="^2" class="keybutton keybutton-pow2">x<sup><sup>2</sup></sup></button>
+                    <button data-js="keybutton" data-value="abs(" class="keybutton keybutton-abs">|x|</button>
+                    <button data-js="keybutton" disabled data-value="" class="keybutton keybutton-">-</button>
+                    <button data-js="keybutton" disabled data-value="exp(" class="keybutton keybutton-exp">exp</button>
+                    <button data-js="keybutton" data-value="" class="keybutton keybutton-">-</button>
+                    <button data-js="keybutton" data-value="sqrt(" class="keybutton keybutton-sqrt">sqrt</button>
+                    <button data-js="keybutton" data-value="(" class="keybutton keybutton-(">(</button>
+                    <button data-js="keybutton" data-value=")" class="keybutton keybutton-)">)</button>
+                    <button data-js="keybutton" data-value="fact(" class="keybutton keybutton-">n!</button>
+                    <button data-js="keybutton" data-value="/" class="keybutton keybutton-/">/</button>
+                    
+                    <button data-js="keybutton" data-value="^(" class="keybutton keybutton-pow">x<sup><sup>y</sup></sup></button>
+                    <button data-js="keybutton" data-value="7" class="keybutton keybutton-7">7</button>
+                    <button data-js="keybutton" data-value="8" class="keybutton keybutton-8">8</button>
+                    <button data-js="keybutton" data-value="9" class="keybutton keybutton-9">9</button>
+                    <button data-js="keybutton" data-value="*" class="keybutton keybutton-multiply">*</button>
+                    <button data-js="keybutton" disabled data-value="" class="keybutton keybutton-">-</button>
+                    <button data-js="keybutton" data-value="4" class="keybutton keybutton-4">4</button>
+                    <button data-js="keybutton" data-value="5" class="keybutton keybutton-5">5</button>
+                    <button data-js="keybutton" data-value="6" class="keybutton keybutton-6">6</button>
+                    <button data-js="keybutton" disabled data-value="-" class="keybutton keybutton-minus">-</button>
+                    <button data-js="keybutton" data-value="log(" class="keybutton keybutton-log">log</button>
+                    <button data-js="keybutton" data-value="1" class="keybutton keybutton-1">1</button>
+                    <button data-js="keybutton" data-value="2" class="keybutton keybutton-2">2</button>
+                    <button data-js="keybutton" data-value="3" class="keybutton keybutton-3">3</button>
+                    <button data-js="keybutton" data-value="+" class="keybutton keybutton-plus">+</button>
+                    <button data-js="keybutton" disabled data-value="ln(" class="keybutton keybutton-ln">ln</button>
+                    <button data-js="keybutton" disabled data-value="" class="keybutton keybutton-">-</button>
+                    <button data-js="keybutton" data-value="0" class="keybutton keybutton-0">0</button>
+                    <button data-js="keybutton" disabled data-value="ans" class="keybutton keybutton-ans">ANS</button>
+                    <button data-js="keybutton" data-value="=" class="keybutton keybutton-equals">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropdowns = document.querySelectorAll('[data-js="dropdown"]')
+        
+        dropdowns.forEach(dropDown => {
+            dropDown.addEventListener('click', (e)=>{
+                dropDown.toggleAttribute('open')
+            })
+        })
+    </script>
+
+    <script>
+        const keyButtons = document.querySelectorAll('[data-js="keybutton"]');
+        const result = document.querySelector('[data-js="result"]')
+        const expression = document.querySelector('[data-js="expression"]')
+
+        let expr = ''
+
+        const setExpr = (newExpr)=>{
+            expr = newExpr
+            expression.textContent = newExpr
+        }
+        const setRes = (res)=>{
+            result.textContent = res
+        }
+
+        const operators = ['+', '-', '/', '*']
+        const operands = ['1','2','3','4','5','6','7','8','9','0']
+        const groupingElements = ['(', ')']
+        const oneParamOperators = ['abs', 'sqrt', 'log', 'ln', 'exp', 'e', 'fact', 'sin', 'cos', 'tan']
+        const twoParamOperators = ['^']
+        const constants = {
+            [document.querySelector('[data-constant="pi"]').getAttribute('data-value')]: Math.PI
+        }
+
+        const controlElements = {
+            '=': (expr)=>({
+              expr,
+              res: calculator.evalExpression(expr)
+            }),
+            'c': (expr)=>({
+                expr: '',
+                res: '',
+            }),
+            'delete': (expr)=>({
+                expr: expr.slice(0, expr.length - 1),
+                res: expr.slice(0, expr.length - 1)
+            })
+        }
+
+        const nullElements = {
+            '+': 0,
+            '-': 0,
+            '/': 1,
+            '*': 1
+        }
+
+        const utils = {
+            stringToStack: (string)=>string.split(' '),
+            equationToStack: (equation)=>{
+                const rexExp = new RegExp('\\W|(-?\\d+)|\\^' + `${(
+                    [
+                        ...oneParamOperators,
+                        ...Object.keys(constants),
+                    ].reduce((acc, curr) => `${acc}|(${curr})`, '')
+                )}`, 'g')
+                let stack = equation.match(rexExp)
+                stack = stack.reduce((acc, curr, index) => ([
+                    ...acc,
+                    ...(()=>{
+                        if(operators.includes(curr)){
+                            if(acc[acc.length - 1] === '('){
+                                return [nullElements[curr].toString(), curr]
+                            }
+                        }
+                        if(Object.keys(constants).includes(curr)){
+                            if(operands.includes (acc[acc.length - 1])){
+                                return ['*', constants[curr]]
+                            }
+                            return [constants[curr]]
+                        }
+                        return [curr]
+                    })()
+                ]), [])
+                return stack
+            },
+            peekStackTop: (stack)=>stack[stack.length - 1]
+        }
+
+        const calculator = new Calculator()
+
+        keyButtons.forEach(keyButton => {
+            keyButton.addEventListener('click', (e)=>{
+                e.preventDefault()
+
+                const value = keyButton.getAttribute('data-value')
+
+                if(Object.keys(controlElements).includes(value)){
+                    const newValues = controlElements[value](expr)
+                    setExpr(newValues.expr)
+                    setRes(newValues.res)
+                }
+                else {
+                    setExpr(expr + value.toString())
+                    setRes(expr)
+                }
+            })
+        })
+
+        function Calculator(){
+
+            this.evalExpression = (expression)=>{
+                const postfixExp =  this.getPostfixFromInfixExpression(expression)                
+                return this.evalPostfixExpression(postfixExp)
+            }
+
+            this.getOperatorPrecendence = (op) => {
+                switch(op){
+                    case '+':
+                    case '-':
+                        return 0;
+                    case '*':
+                    case '/': 
+                        return 1;
+                    default:
+                        {
+                            if(oneParamOperators.includes(op)
+                            || twoParamOperators.includes(op)){
+                                return 2
+                            }
+                            return -1
+                        }
+                }
+            }
+
+            this.evalPostfixExpression = (postFixExpression) => {
+                const postFixStack = utils.stringToStack(postFixExpression).filter(x => x !== '')
+
+                const innerEval = ()=>{
+                    const char = postFixStack.pop()
+
+                    if(operators.includes(char)){
+                        const a = innerEval();
+                        const b = innerEval();
+                        return this.evalOperation(char)(parseFloat(b),parseFloat(a));
+                    }
+                    else if (oneParamOperators.includes(char)){
+                        const a = innerEval();
+                        return this.evalOperation(char)(parseFloat(a));
+                    }
+                    else if (twoParamOperators.includes(char)){
+                        const a = innerEval();
+                        const b = innerEval();
+                        return this.evalOperation(char)(parseFloat(b),parseFloat(a));
+                    }
+                    else{
+                        return char;
+                    }
+                    
+                }
+
+                if(postFixStack.length <= 1) return parseFloat(postFixStack.pop())
+
+                return innerEval();
+            }
+
+            this.getPostfixFromInfixExpression = (infixExpression)=>{
+                const infixStack = utils.equationToStack(infixExpression).reverse()
+                return this.getPostfixFromInfixStack(infixStack)
+            }
+
+            this.getPostfixFromInfixStack = (infixStack) => {
+                let stack = []
+                let postfixExpression = '' 
+                while(infixStack.length > 0){
+                    const char = infixStack.pop()
+                    
+                    if(groupingElements.includes(char)){                                             
+                        if(char === '(') {
+                            const groupPostfixExpr = this.getPostfixFromInfixStack(infixStack)
+                            const groupRes = this.evalPostfixExpression(groupPostfixExpr)
+                            postfixExpression += groupRes + ' '
+                        }else if (char === ')'){
+                            while(stack.length > 0){
+                                postfixExpression += stack.pop()
+                            }
+                            return postfixExpression
+                        }
+                    }
+                    else if(operators.includes(char) 
+                            || oneParamOperators.includes(char)
+                            || twoParamOperators.includes(char)){
+                        stack.push(char)
+                        while(stack.length > 1){
+                            const top = stack.pop()
+                            const bottom = stack.pop()
+                            
+                            if(this.getOperatorPrecendence(top) > this.getOperatorPrecendence(bottom)){
+                                stack.push(bottom)
+                                stack.push(top)
+                                break;
+                            }
+
+                            postfixExpression += bottom + ' '
+                            stack.push(top)
+                        }
+                    }
+                    else {
+                        postfixExpression += char + ' '
+                    }
+
+                }
+
+                while(stack.length > 0){
+                    postfixExpression += stack.pop() + ' '
+                }
+
+                return postfixExpression;
+            }
+
+            this.evalOperation = (operator)=>{
+                switch(operator){
+                    case '+': return (a,b) => a+b;
+                    case '-': return (a,b) => a-b;
+                    case '*': return (a,b) => a*b;
+                    case '/': return (a,b) => a/b;
+                    case 'abs': return (a) => Math.abs(a)
+                    case 'sqrt': return (a) => Math.sqrt(a)
+                    case '^': return (a, b) => Math.pow(a, b)
+                    case 'log': return (a) => Math.log10(a)
+                    case 'e': return (a) => Math.exp(a)
+                    case 'ln': return (a) => a
+                    case 'fact': return (a) => {
+                        let res = 1;
+                        for(let i = a; i > 0 ; i--){
+                            res *= i
+                        }
+                        return res
+                    }
+                    case 'sin': return (a) => Math.sin(a)
+                    case 'cos': return (a) => Math.cos(a)
+                    case 'tan': return (a) => Math.tan(a)
+                    default: return null;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
