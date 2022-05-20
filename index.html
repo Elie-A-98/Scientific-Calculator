@@ -371,6 +371,29 @@
             })
         })
 
+        document.addEventListener('keydown', (e)=>{
+            const key = e.key
+            if([...operands, ...operators].includes(key)){
+                setExpr(expr + key)
+                setRes(expr)
+            }
+            else if (key === 'Enter'){
+                const newValues = controlElements['='](expr)
+                setExpr(newValues.expr)
+                setRes(newValues.res)
+            }
+            else if (key === 'Escape'){
+                const newValues = controlElements['c'](expr)
+                setExpr(newValues.expr)
+                setRes(newValues.res)
+            }
+            else if (key === 'Backspace'){
+                const newValues = controlElements['delete'](expr)
+                setExpr(newValues.expr)
+                setRes(newValues.res)
+            }
+        })
+
         function Calculator(){
 
             this.evalExpression = (expression)=>{
